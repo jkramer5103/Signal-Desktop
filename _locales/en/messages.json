@@ -9460,6 +9460,14 @@
     "messageformat": "Typing indicators",
     "description": "Label for the typing indicators setting"
   },
+  "icu:Preferences--show-incoming-read-receipts-when-sending-disabled": {
+    "messageformat": "Show read receipts from others on this device",
+    "description": "Label for a desktop-only setting, shown while read receipts are disabled, that displays read receipts contacts send without sending any"
+  },
+  "icu:Preferences--show-incoming-read-receipts-when-sending-disabled--description": {
+    "messageformat": "Your read receipts stay off. Only contacts who send read receipts will show as read. This setting only applies to this device and isn’t synced.",
+    "description": "Description for the desktop-only setting that displays incoming read receipts while sending read receipts is disabled"
+  },
   "icu:Preferences--messaging-help": {
     "messageformat": "See and share when message are being read and typed. If disabled, you won’t see read receipts or typing indicators from others.",
     "description": "Help text at the bottom of the messaging section of privacy preferences"

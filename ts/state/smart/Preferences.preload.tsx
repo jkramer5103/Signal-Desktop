@@ -688,6 +688,12 @@ export function SmartPreferences(): JSX.Element | null {
       account.captureChange('read-receipt-setting');
     }
   );
+  // Desktop-local only: intentionally no captureChange, so this is never
+  // written to storage service or synced to other devices.
+  const [
+    hasShowIncomingReadReceiptsWhenSendingDisabled,
+    onShowIncomingReadReceiptsWhenSendingDisabledChange,
+  ] = createItemsAccess('showIncomingReadReceiptsWhenSendingDisabled', false);
   const [hasTypingIndicators, onTypingIndicatorsChange] = createItemsAccess(
     'typingIndicators',
     false,
@@ -1098,6 +1104,9 @@ export function SmartPreferences(): JSX.Element | null {
         hasPreferContactAvatars={hasPreferContactAvatars}
         hasReactionNotifications={hasReactionNotifications}
         hasReadReceipts={hasReadReceipts}
+        hasShowIncomingReadReceiptsWhenSendingDisabled={
+          hasShowIncomingReadReceiptsWhenSendingDisabled
+        }
         hasRegistrationLock={hasRegistrationLock}
         hasRelayCalls={hasRelayCalls}
         hasSealedSenderIndicators={hasSealedSenderIndicators}
@@ -1171,6 +1180,9 @@ export function SmartPreferences(): JSX.Element | null {
         onPreferContactAvatarsChange={onPreferContactAvatarsChange}
         onReactionNotificationsChange={onReactionNotificationsChange}
         onReadReceiptsChange={onReadReceiptsChange}
+        onShowIncomingReadReceiptsWhenSendingDisabledChange={
+          onShowIncomingReadReceiptsWhenSendingDisabledChange
+        }
         onRegistrationLockChange={onRegistrationLockChange}
         onRelayCallsChange={onRelayCallsChange}
         onResetNotificationSettings={onResetNotificationSettings}

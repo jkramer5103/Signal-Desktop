@@ -508,6 +508,7 @@ export default {
     hasPreferContactAvatars: true,
     hasReactionNotifications: true,
     hasReadReceipts: true,
+    hasShowIncomingReadReceiptsWhenSendingDisabled: false,
     hasRegistrationLock: false,
     hasRelayCalls: false,
     hasSealedSenderIndicators: true,
@@ -657,6 +658,9 @@ export default {
     onPreferContactAvatarsChange: action('onPreferContactAvatarsChange'),
     onReactionNotificationsChange: action('onReactionNotificationsChange'),
     onReadReceiptsChange: action('onReadReceiptsChange'),
+    onShowIncomingReadReceiptsWhenSendingDisabledChange: action(
+      'onShowIncomingReadReceiptsWhenSendingDisabledChange'
+    ),
     onRegistrationLockChange: action('onRegistrationLockChange'),
     onRelayCallsChange: action('onRelayCallsChange'),
     onResetNotificationSettings: action('onResetNotificationSettings'),
@@ -1175,6 +1179,17 @@ Internal.args = {
   isInternalUser: true,
 };
 
+export const PrivacyReadReceiptsOff = Template.bind({});
+PrivacyReadReceiptsOff.args = {
+  settingsLocation: { page: SettingsPage.Privacy },
+  hasReadReceipts: false,
+};
+export const PrivacyReadReceiptsOffShowIncoming = Template.bind({});
+PrivacyReadReceiptsOffShowIncoming.args = {
+  settingsLocation: { page: SettingsPage.Privacy },
+  hasReadReceipts: false,
+  hasShowIncomingReadReceiptsWhenSendingDisabled: true,
+};
 export const PrivacyPrimaryDevice = Template.bind({});
 PrivacyPrimaryDevice.args = {
   weArePrimaryDevice: true,

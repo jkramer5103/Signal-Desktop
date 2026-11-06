@@ -13,6 +13,7 @@ import type {
   MessageReceiptType,
 } from '../messageModifiers/MessageReceipts.preload.ts';
 import {
+  forMessage,
   onReceipt,
   messageReceiptTypeSchema,
 } from '../messageModifiers/MessageReceipts.preload.ts';
@@ -253,5 +254,151 @@ describe('MessageReceipts', () => {
       SendStatus.Sent,
       'original-dddd'
     );
+  });
+
+  describe('when the account-wide read receipt setting is disabled', () => {
+    beforeEach(async () => {
+      await itemStorage.put('read-receipt-setting', false);
+      // Needed when a receipt arrives before its message (early receipts)
+      window.ConversationController.getOrCreate(ourAci, 'private');
+    });
+
+    function makeOutgoingMessage(
+      recipients: ReadonlyArray<string>
+    ): MessageAttributesType {
+      const sentAt = Date.now();
+      return {
+        conversationId: uuid(),
+        id: uuid(),
+        received_at: 1,
+        sent_at: sentAt,
+        timestamp: sentAt,
+        type: 'outgoing',
+        sendStateByConversationId: Object.fromEntries(
+          recipients.map(recipient => [
+            recipient,
+            { status: SendStatus.Sent, updatedAt: Date.now() },
+          ])
+        ),
+      };
+    }
+
+    async function applyReceipts(
+      message: MessageAttributesType,
+      receipts: ReadonlyArray<[string, MessageReceiptType]>
+    ) {
+      await window.MessageCache.saveMessage(message, { forceSave: true });
+      await Promise.all(
+        receipts.map(([conversationId, type]) =>
+          onReceipt(generateReceipt(conversationId, message.sent_at, type))
+        )
+      );
+      const fromDatabase = await DataReader.getMessageById(message.id);
+      return fromDatabase?.sendStateByConversationId;
+    }
+
+    it('drops incoming read/view receipts by default (stock behavior)', async () => {
+      const sendState = await applyReceipts(
+        makeOutgoingMessage(['aaaa', 'bbbb', 'cccc']),
+        [
+          ['aaaa', messageReceiptTypeSchema.enum.Delivery],
+          ['bbbb', messageReceiptTypeSchema.enum.Read],
+          ['cccc', messageReceiptTypeSchema.enum.View],
+        ]
+      );
+
+      assert.equal(sendState?.aaaa?.status, SendStatus.Delivered, 'aaaa');
+      assert.equal(sendState?.bbbb?.status, SendStatus.Sent, 'bbbb');
+      assert.equal(sendState?.cccc?.status, SendStatus.Sent, 'cccc');
+    });
+
+    it('applies incoming read/view receipts with the local override on', async () => {
+      await itemStorage.put(
+        'showIncomingReadReceiptsWhenSendingDisabled',
+        true
+      );
+
+      const sendState = await applyReceipts(
+        makeOutgoingMessage(['aaaa', 'bbbb', 'cccc', 'dddd']),
+        [
+          ['aaaa', messageReceiptTypeSchema.enum.Delivery],
+          ['bbbb', messageReceiptTypeSchema.enum.Read],
+          ['cccc', messageReceiptTypeSchema.enum.View],
+        ]
+      );
+
+      assert.equal(sendState?.aaaa?.status, SendStatus.Delivered, 'aaaa');
+      assert.equal(sendState?.bbbb?.status, SendStatus.Read, 'bbbb');
+      assert.equal(sendState?.cccc?.status, SendStatus.Viewed, 'cccc');
+      // A contact that sends no receipt is never marked read
+      assert.equal(sendState?.dddd?.status, SendStatus.Sent, 'dddd');
+
+      // The override must never flip the account-wide setting
+      assert.isFalse(itemStorage.get('read-receipt-setting'));
+    });
+
+    it('leaves story view receipt policy unchanged by the local override', async () => {
+      await itemStorage.put(
+        'showIncomingReadReceiptsWhenSendingDisabled',
+        true
+      );
+      await itemStorage.put('storyViewReceiptsEnabled', false);
+
+      const sentAt = Date.now();
+      const story: MessageAttributesType = {
+        conversationId: uuid(),
+        id: uuid(),
+        received_at: 1,
+        sent_at: sentAt,
+        timestamp: sentAt,
+        type: 'story',
+        sourceServiceId: ourAci,
+        sendStateByConversationId: {
+          aaaa: { status: SendStatus.Delivered, updatedAt: Date.now() },
+        },
+      };
+
+      const sendState = await applyReceipts(story, [
+        ['aaaa', messageReceiptTypeSchema.enum.View],
+      ]);
+
+      assert.equal(sendState?.aaaa?.status, SendStatus.Delivered, 'aaaa');
+    });
+
+    describe('early receipts (receipt arrives before its message)', () => {
+      async function getEarlyReceiptTypes(): Promise<Array<string>> {
+        const message = makeOutgoingMessage(['aaaa']);
+        await Promise.all([
+          onReceipt(
+            generateReceipt(
+              'aaaa',
+              message.sent_at,
+              messageReceiptTypeSchema.enum.Delivery
+            )
+          ),
+          onReceipt(
+            generateReceipt(
+              'aaaa',
+              message.sent_at,
+              messageReceiptTypeSchema.enum.Read
+            )
+          ),
+        ]);
+        const receipts = await forMessage(message);
+        return receipts.map(({ receiptSync }) => receiptSync.type).sort();
+      }
+
+      it('drops early read receipts by default', async () => {
+        assert.deepEqual(await getEarlyReceiptTypes(), ['Delivery']);
+      });
+
+      it('keeps early read receipts with the local override on', async () => {
+        await itemStorage.put(
+          'showIncomingReadReceiptsWhenSendingDisabled',
+          true
+        );
+        assert.deepEqual(await getEarlyReceiptTypes(), ['Delivery', 'Read']);
+      });
+    });
   });
 });

@@ -12,6 +12,27 @@ export function getTypingIndicatorSetting(): boolean {
 export function getReadReceiptSetting(): boolean {
   return itemStorage.get('read-receipt-setting', false);
 }
+
+/**
+ * Desktop-local opt-in. Only affects whether incoming read/viewed receipts
+ * are processed while the account-wide read receipt setting is disabled; it
+ * never causes outgoing read receipts to be sent.
+ */
+function getShowIncomingReadReceiptsWhenSendingDisabledSetting(): boolean {
+  return itemStorage.get('showIncomingReadReceiptsWhenSendingDisabled', false);
+}
+
+/**
+ * Whether incoming (non-story) read and viewed receipts from contacts should
+ * be applied to our outgoing messages.
+ */
+export function shouldProcessIncomingReadReceipts(): boolean {
+  return (
+    getReadReceiptSetting() ||
+    getShowIncomingReadReceiptsWhenSendingDisabledSetting()
+  );
+}
+
 export function getSealedSenderIndicatorSetting(): boolean {
   return itemStorage.get('sealedSenderIndicators', false);
 }

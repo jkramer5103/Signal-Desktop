@@ -89,6 +89,10 @@ export type StorageAccessType = {
   'notification-setting': NotificationSettingType;
   'reaction-notification': boolean;
   'read-receipt-setting': boolean;
+  // Desktop-local override: process and display incoming read/viewed receipts
+  // even while 'read-receipt-setting' (account-wide, synced) is disabled.
+  // Never synced to storage service or backups, and never enables sending.
+  showIncomingReadReceiptsWhenSendingDisabled: boolean;
   'sent-media-quality': SentMediaQualitySettingType;
   audioMessage: boolean;
   attachmentMigration_isComplete: boolean;
@@ -393,6 +397,7 @@ export const STORAGE_KEYS_TO_PRESERVE_AFTER_UNLINK = [
   'preferredReactionEmoji',
   'reaction-notification',
   'sent-media-quality',
+  'showIncomingReadReceiptsWhenSendingDisabled',
   'showStickerPickerHint',
   'showStickersIntroduction',
   'emojiSkinToneDefault',

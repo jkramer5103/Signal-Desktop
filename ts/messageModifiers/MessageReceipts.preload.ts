@@ -34,7 +34,10 @@ import {
 import { drop } from '../util/drop.std.ts';
 import { getMessageById } from '../messages/getMessageById.preload.ts';
 import { MessageModel } from '../models/messages.preload.ts';
-import { areStoryViewReceiptsEnabled } from '../util/Settings.preload.ts';
+import {
+  areStoryViewReceiptsEnabled,
+  shouldProcessIncomingReadReceipts,
+} from '../util/Settings.preload.ts';
 import { itemStorage } from '../textsecure/Storage.preload.ts';
 
 const { groupBy } = lodash;
@@ -400,12 +403,12 @@ const shouldDropReceipt = (
     case messageReceiptTypeSchema.enum.Delivery:
       return false;
     case messageReceiptTypeSchema.enum.Read:
-      return !itemStorage.get('read-receipt-setting');
+      return !shouldProcessIncomingReadReceipts();
     case messageReceiptTypeSchema.enum.View:
       if (isStory(message)) {
         return !areStoryViewReceiptsEnabled();
       }
-      return !itemStorage.get('read-receipt-setting');
+      return !shouldProcessIncomingReadReceipts();
     default:
       throw missingCaseError(type);
   }

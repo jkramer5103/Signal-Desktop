@@ -170,6 +170,7 @@ export type PropsDataType = {
   hasPreferContactAvatars: boolean;
   hasReactionNotifications: boolean;
   hasReadReceipts: boolean;
+  hasShowIncomingReadReceiptsWhenSendingDisabled: boolean;
   hasRegistrationLock: boolean | undefined;
   hasRelayCalls?: boolean;
   hasSpellCheck: boolean | undefined;
@@ -366,6 +367,7 @@ type PropsFunctionType = {
   onPreferContactAvatarsChange: CheckboxChangeHandlerType;
   onReactionNotificationsChange: CheckboxChangeHandlerType;
   onReadReceiptsChange: CheckboxChangeHandlerType;
+  onShowIncomingReadReceiptsWhenSendingDisabledChange: CheckboxChangeHandlerType;
   onRegistrationLockChange: CheckboxChangeHandlerType;
   onRelayCallsChange: CheckboxChangeHandlerType;
   onResetNotificationSettings: () => unknown;
@@ -503,6 +505,7 @@ export function Preferences({
   hasPreferContactAvatars,
   hasReactionNotifications,
   hasReadReceipts,
+  hasShowIncomingReadReceiptsWhenSendingDisabled,
   hasRegistrationLock,
   hasRelayCalls,
   hasSealedSenderIndicators,
@@ -567,6 +570,7 @@ export function Preferences({
   onPreferContactAvatarsChange,
   onReactionNotificationsChange,
   onReadReceiptsChange,
+  onShowIncomingReadReceiptsWhenSendingDisabledChange,
   onRegistrationLockChange,
   onRelayCallsChange,
   onResetNotificationSettings,
@@ -1733,6 +1737,20 @@ export function Preferences({
             checked={hasReadReceipts}
             onCheckedChange={onReadReceiptsChange}
           />
+          {!hasReadReceipts && (
+            <AxoSwitchItem.Root
+              label={i18n(
+                'icu:Preferences--show-incoming-read-receipts-when-sending-disabled'
+              )}
+              description={i18n(
+                'icu:Preferences--show-incoming-read-receipts-when-sending-disabled--description'
+              )}
+              checked={hasShowIncomingReadReceiptsWhenSendingDisabled}
+              onCheckedChange={
+                onShowIncomingReadReceiptsWhenSendingDisabledChange
+              }
+            />
+          )}
           <AxoSwitchItem.Root
             label={i18n('icu:Preferences--typing-indicators')}
             checked={hasTypingIndicators}
